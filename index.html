@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmo | Premium Movies & TV Shows</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="logo">
+            <span class="text-white">FILMO</span>
+        </a>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search movies, tv shows..." autocomplete="off">
+            <div id="searchSuggestions" class="suggestions-box"></div>
+        </div>
+    </nav>
+
+    <header id="hero" class="hero-section">
+        <div id="heroVideoContainer" class="hero-bg-container"></div>
+        <div class="hero-vignette-side"></div>
+        <div class="hero-vignette-bottom"></div>
+        <div class="hero-glow"></div>
+
+        <div class="hero-content">
+            <h1 id="heroTitle" class="hero-title">Loading...</h1>
+            <div class="hero-meta" id="heroMeta"></div>
+            <p id="heroDesc" class="hero-desc">Please wait while we fetch the best content...</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-play" id="heroPlayBtn">
+                    <i class="fas fa-play"></i> Play
+                </a>
+                <button class="btn btn-info" id="heroInfoBtn">
+                    <i class="fas fa-info-circle"></i> See More
+                </button>
+            </div>
+        </div>
+
+        <button id="muteBtn" class="mute-btn" onclick="toggleMute()">
+            <i class="fas fa-volume-mute"></i>
+        </button>
+    </header>
+
+    <main class="main-content" id="mainContent">
+        <!-- Categories will load here via JS -->
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing - Filmo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
+        
+        /* ලස්සන Back Button එක */
+        .back-btn { 
+            position: absolute; top: 20px; left: 20px; z-index: 100; color: white; text-decoration: none; 
+            font-size: 1.1rem; font-weight: 600; background: rgba(0,0,0,0.6); padding: 10px 20px; 
+            border-radius: 30px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; 
+        }
+        .back-btn:hover { background: rgba(220,38,38,0.8); border-color: #dc2626; }
+        
+        /* Iframe එක ෆුල් ස්ක්‍රීන් කිරීම */
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Back බටන් එක -->
+    <a href="#" onclick="history.back(); return false;" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Details
+    </a>
+
+    <!-- වීඩියෝ එක ප්ලේ වෙන Iframe එක -->
+    <iframe id="videoPlayer" allowfullscreen allow="autoplay; fullscreen"></iframe>
+
+    <script>
+        // URL එකෙන් විස්තර අරගෙන streamimdb.ru ලින්ක් එක Iframe එකට දානවා
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const imdb = params.get('imdb');
+            const type = params.get('type');
+            const s = params.get('s'); // Season
+            const e = params.get('e'); // Episode
+            
+            const player = document.getElementById('videoPlayer');
+            
+            if(imdb) {
+                if(type === 'movie') {
+                    // Movie ලින්ක් එක
+                    player.src = `https://streamimdb.ru/embed/movie/${imdb}`;
+                } else if(type === 'tv') {
+                    // TV Show ලින්ක් එක (Season සහ Episode එකත් එක්ක)
+                    player.src = `https://streamimdb.ru/embed/tv/${imdb}/${s}/${e}`;
+                }
+            } else {
+                document.body.innerHTML = '<h2 style="color:white; text-align:center; margin-top:20%; font-family:sans-serif;">Video not found!</h2>';
+            }
+        }
+    </script>
+
+</body>
+</html>
