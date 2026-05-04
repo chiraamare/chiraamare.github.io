@@ -19,6 +19,211 @@ let currentImdbId = null;
 let currentPage = 1;
 let currentFetchUrl = '';
 let isLoading = false;
+const CONTINUE_STORAGE_KEY = 'filmoContinueWatching';
+const CONTINUE_STORAGE_LIMIT = 8;
+
+function getContinueWatchingItems() {
+    try {
+        const raw = localStorage.getItem(CONTINUE_STORAGE_KEY);
+        const items = raw ? JSON.parse(raw) : [];
+        return Array.isArray(items) ? items.filter(Boolean) : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function buildContinueKey(item) {
+    return [item.type || 'unknown', item.tmdbId || item.id || '', item.imdbId || '', item.season || '', item.episode || ''].join(':');
+}
+
+function saveContinueWatchingItem(item) {
+    if (!item || !item.type) return;
+
+    const key = item.key || buildContinueKey(item);
+    const normalized = {
+        ...item,
+        key,
+        watchedAt: item.watchedAt || Date.now()
+    };
+
+    const existingItems = getContinueWatchingItems().filter(entry => entry.key !== key);
+    existingItems.unshift(normalized);
+    localStorage.setItem(CONTINUE_STORAGE_KEY, JSON.stringify(existingItems.slice(0, CONTINUE_STORAGE_LIMIT)));
+}
+
+function formatLastWatched(timestamp) {
+    if (!timestamp) return 'Recently watched';
+
+    const elapsed = Date.now() - timestamp;
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    if (elapsed < minute) return 'Just now';
+    if (elapsed < hour) return `${Math.max(1, Math.round(elapsed / minute))}m ago`;
+    if (elapsed < day) return `${Math.max(1, Math.round(elapsed / hour))}h ago`;
+    return `${Math.max(1, Math.round(elapsed / day))}d ago`;
+}
+
+function getContinueTitle(item) {
+    return item.title || item.name || 'Untitled';
+}
+
+function getContinueSubtitle(item) {
+    if (item.type === 'tv') {
+        const season = item.season ? `Season ${item.season}` : 'TV Show';
+        const episode = item.episode ? `Episode ${item.episode}` : '';
+        return [season, episode].filter(Boolean).join(' • ');
+    }
+
+    return 'Movie';
+}
+
+function getContinuePlayUrl(item) {
+    if (item.playUrl) return item.playUrl;
+
+    if (item.type === 'tv' && item.tmdbId && item.imdbId && item.season && item.episode) {
+        return `play.html?id=${item.tmdbId}&imdb=${item.imdbId}&type=tv&s=${item.season}&e=${item.episode}`;
+    }
+
+    if (item.type === 'movie' && item.imdbId) {
+        return `play.html?imdb=${item.imdbId}&type=movie`;
+    }
+
+    return item.detailsUrl || '#';
+}
+
+function getContinueRestartUrl(item) {
+    if (item.type === 'tv' && item.tmdbId && item.imdbId) {
+        return `play.html?id=${item.tmdbId}&imdb=${item.imdbId}&type=tv&s=1&e=1`;
+    }
+
+    return item.detailsUrl || getContinuePlayUrl(item);
+}
+
+async function hydrateContinueWatchingItem(item) {
+    if (item.title && item.posterPath && item.tmdbId) {
+        return item;
+    }
+
+    if (!item.imdbId) {
+        return item;
+    }
+
+    try {
+        const res = await fetch(`${BASE_URL}/find/${item.imdbId}?api_key=${API_KEY}&external_source=imdb_id`);
+        const data = await res.json();
+        const result = item.type === 'tv' ? data.tv_results?.[0] : data.movie_results?.[0];
+
+        if (result) {
+            item.title = item.title || result.name || result.title;
+            item.posterPath = item.posterPath || result.poster_path || '';
+            item.backdropPath = item.backdropPath || result.backdrop_path || '';
+            item.tmdbId = item.tmdbId || result.id || '';
+            if (!item.detailsUrl && item.tmdbId) {
+                item.detailsUrl = `details.html?id=${item.tmdbId}&type=${item.type}`;
+            }
+        }
+    } catch (error) {
+        console.error('Unable to hydrate continue watching item', error);
+    }
+
+    return item;
+}
+
+async function renderContinueWatchingSection(container) {
+    if (!container) return;
+
+    const items = getContinueWatchingItems();
+    if (!items.length) return;
+
+    const hydratedItems = await Promise.all(items.slice(0, 4).map(item => hydrateContinueWatchingItem({ ...item })));
+    const visibleItems = hydratedItems.filter(item => item.title || item.posterPath || item.playUrl);
+
+    if (!visibleItems.length) return;
+
+    const section = document.createElement('section');
+    section.className = 'movie-row continue-section';
+    section.innerHTML = `
+        <div class="section-header">
+            <div>
+                <h2>Continue Watching</h2>
+                <p class="section-note">Pick up where you left off across movies and TV shows.</p>
+            </div>
+        </div>
+        <div class="row-posters continue-row"></div>
+    `;
+
+    const row = section.querySelector('.continue-row');
+    visibleItems.forEach(item => {
+        const poster = item.posterPath ? `${IMG_URL + item.posterPath}` : 'https://via.placeholder.com/300x450?text=No+Image';
+        const playUrl = getContinuePlayUrl(item);
+        const restartUrl = getContinueRestartUrl(item);
+        const badgeText = item.type === 'tv' ? 'TV Show' : 'Movie';
+        const subtitle = getContinueSubtitle(item);
+        const watchedText = formatLastWatched(item.watchedAt);
+
+        row.insertAdjacentHTML('beforeend', `
+            <article class="resume-card">
+                <a class="resume-poster" href="${playUrl}">
+                    <img src="${poster}" alt="${getContinueTitle(item)}" loading="lazy">
+                    <span class="resume-badge">${badgeText}</span>
+                </a>
+                <div class="resume-copy">
+                    <p class="resume-kicker">Continue watching</p>
+                    <h3 class="resume-title">${getContinueTitle(item)}</h3>
+                    <p class="resume-meta">${subtitle} • ${watchedText}</p>
+                    <div class="resume-actions">
+                        <a href="${playUrl}" class="resume-btn primary"><i class="fas fa-play"></i> Continue</a>
+                        <a href="${restartUrl}" class="resume-btn secondary"><i class="fas fa-rotate-left"></i> Watch from beginning</a>
+                    </div>
+                </div>
+            </article>
+        `);
+    });
+
+    container.insertAdjacentElement('afterbegin', section);
+}
+
+window.saveContinueWatchingFromPlayback = async function(payload) {
+    if (!payload || !payload.type) return;
+
+    const item = {
+        type: payload.type,
+        tmdbId: payload.tmdbId || payload.id || '',
+        imdbId: payload.imdbId || payload.imdb || '',
+        season: payload.season || '',
+        episode: payload.episode || '',
+        title: payload.title || '',
+        posterPath: payload.posterPath || '',
+        backdropPath: payload.backdropPath || '',
+        playUrl: payload.playUrl || window.location.href,
+        detailsUrl: payload.detailsUrl || '',
+        watchedAt: Date.now()
+    };
+
+    if ((!item.title || !item.posterPath || !item.tmdbId) && item.imdbId) {
+        try {
+            const res = await fetch(`${BASE_URL}/find/${item.imdbId}?api_key=${API_KEY}&external_source=imdb_id`);
+            const data = await res.json();
+            const result = item.type === 'tv' ? data.tv_results?.[0] : data.movie_results?.[0];
+
+            if (result) {
+                item.title = item.title || result.name || result.title || '';
+                item.posterPath = item.posterPath || result.poster_path || '';
+                item.backdropPath = item.backdropPath || result.backdrop_path || '';
+                item.tmdbId = item.tmdbId || result.id || '';
+                if (!item.detailsUrl && item.tmdbId) {
+                    item.detailsUrl = `details.html?id=${item.tmdbId}&type=${item.type}`;
+                }
+            }
+        } catch (error) {
+            console.error('Unable to look up playback metadata', error);
+        }
+    }
+
+    saveContinueWatchingItem(item);
+};
 
 window.addEventListener('DOMContentLoaded', () => {
     const nav = document.getElementById('navbar');
@@ -101,6 +306,7 @@ async function loadHomePage() {
         }
         const mainContent = document.getElementById('mainContent');
         if(mainContent) {
+            await renderContinueWatchingSection(mainContent);
             categories.forEach(cat => {
                 mainContent.insertAdjacentHTML('beforeend', `<div class="movie-row"><h2>${cat.title}</h2><div class="row-posters" id="${cat.id}"></div></div>`);
                 fetchAndBuildRow(cat.id, cat.url, cat.isTop10);

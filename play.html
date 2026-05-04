@@ -142,15 +142,33 @@
             const overlay = document.getElementById('episodesOverlay');
             overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
         }
-        window.onload = () => {
+        function buildPlayerSrc(type, imdb, season, episode) {
+            const subtitleHint = 'subtitleLang=en';
+            if (type === 'movie') {
+                return `https://streamimdb.ru/embed/movie/${imdb}?${subtitleHint}`;
+            }
+
+            return `https://streamimdb.ru/embed/tv/${imdb}/${season}/${episode}?${subtitleHint}`;
+        }
+        window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
             const imdb = params.get('imdb'), type = params.get('type'), s = params.get('s'), e = params.get('e'), id = params.get('id');
             const player = document.getElementById('videoPlayer');
             if(imdb) {
-                player.src = (type === 'movie') ? `https://streamimdb.ru/embed/movie/${imdb}` : `https://streamimdb.ru/embed/tv/${imdb}/${s}/${e}`;
+                player.src = buildPlayerSrc(type, imdb, s || 1, e || 1);
                 if(type === 'tv' && id) {
                     document.getElementById('showEpisodesBtn').style.display = 'flex';
                     loadPlayEpisodes(id, imdb, s);
+                }
+                if (window.saveContinueWatchingFromPlayback) {
+                    await window.saveContinueWatchingFromPlayback({
+                        type,
+                        tmdbId: id || '',
+                        imdbId: imdb,
+                        season: s || '',
+                        episode: e || '',
+                        playUrl: window.location.href
+                    });
                 }
             }
         }
