@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse | Filmo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="browse-page">
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar" style="background: rgba(5,7,10,0.95); backdrop-filter: blur(10px);">
+        <a href="index.html" class="logo">
+            <span class="text-white">FILMO</span>
+        </a>
+
+        <!-- සර්ච් බාර් එක Header එක මැදට -->
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search movies, tv shows..." autocomplete="off">
+            <div id="searchSuggestions" class="suggestions-box"></div>
+        </div>
+
+        <div class="nav-links">
+            <a href="browse.html" class="nav-link active">Browse</a>
+        </div>
+    </nav>
+
+    <!-- Header එක යටින් Category එක පටන් ගන්නවා -->
+    <div class="category-wrapper" style="margin-top: 100px; background: transparent; padding-top: 0;">
+        <div class="category-pills-container" id="browseCategoryPills">
+            <button class="cat-pill active" onclick="loadBrowseCategory('trending', this)">Trending Now</button>
+            <button class="cat-pill" onclick="loadBrowseCategory('netflix', this)">Netflix Only</button>
+        </div>
+    </div>
+
+    <!-- Infinite Scroll Grid -->
+    <main class="main-content" style="padding-top: 0;">
+        <div class="filtered-grid" id="browseGrid"></div>
+        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Loading more...
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
