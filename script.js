@@ -16,6 +16,9 @@ const categories = [
 let isMuted = true;
 let currentTvId = null;
 let currentImdbId = null;
+let currentPlaySeason = null;
+let currentPlayEpisode = null;
+let availablePlaySeasons = [];
 let currentPage = 1;
 let currentFetchUrl = '';
 let isLoading = false;
@@ -36,17 +39,30 @@ function buildContinueKey(item) {
     return [item.type || 'unknown', item.tmdbId || item.id || '', item.imdbId || '', item.season || '', item.episode || ''].join(':');
 }
 
+function buildContinueSeriesKey(item) {
+    if (!item) return 'unknown';
+
+    const identity = item.tmdbId || item.imdbId || item.id || '';
+    if (item.type === 'tv') {
+        return ['tv', identity].join(':');
+    }
+
+    return buildContinueKey(item);
+}
+
 function saveContinueWatchingItem(item) {
     if (!item || !item.type) return;
 
     const key = item.key || buildContinueKey(item);
+    const seriesKey = item.seriesKey || buildContinueSeriesKey(item);
     const normalized = {
         ...item,
         key,
+        seriesKey,
         watchedAt: item.watchedAt || Date.now()
     };
 
-    const existingItems = getContinueWatchingItems().filter(entry => entry.key !== key);
+    const existingItems = getContinueWatchingItems().filter(entry => (entry.seriesKey || buildContinueSeriesKey(entry)) !== seriesKey);
     existingItems.unshift(normalized);
     localStorage.setItem(CONTINUE_STORAGE_KEY, JSON.stringify(existingItems.slice(0, CONTINUE_STORAGE_LIMIT)));
 }
@@ -132,15 +148,40 @@ async function hydrateContinueWatchingItem(item) {
 }
 
 async function renderContinueWatchingSection(container) {
-    if (!container) return;
+    if (!container) {
+        console.error('Continue Watching ERROR: container is null or undefined');
+        return;
+    }
 
     const items = getContinueWatchingItems();
-    if (!items.length) return;
+    console.log('Continue Watching DEBUG: Total items in storage:', items.length, items);
+    
+    if (!items.length) {
+        console.log('Continue Watching: No items stored yet');
+        return;
+    }
 
-    const hydratedItems = await Promise.all(items.slice(0, 4).map(item => hydrateContinueWatchingItem({ ...item })));
+    const dedupedItems = [];
+    const seenSeries = new Set();
+
+    items.forEach(item => {
+        const seriesKey = item.seriesKey || buildContinueSeriesKey(item);
+        if (seenSeries.has(seriesKey)) return;
+        seenSeries.add(seriesKey);
+        dedupedItems.push(item);
+    });
+
+    console.log('Deduped items:', dedupedItems.length);
+
+    const hydratedItems = await Promise.all(dedupedItems.slice(0, 4).map(item => hydrateContinueWatchingItem({ ...item })));
     const visibleItems = hydratedItems.filter(item => item.title || item.posterPath || item.playUrl);
 
-    if (!visibleItems.length) return;
+    console.log('Visible items after hydration:', visibleItems.length);
+
+    if (!visibleItems.length) {
+        console.log('No visible items - stopping render');
+        return;
+    }
 
     const section = document.createElement('section');
     section.className = 'movie-row continue-section';
@@ -182,7 +223,9 @@ async function renderContinueWatchingSection(container) {
         `);
     });
 
+    console.log('Continue Watching DEBUG: About to insert section with', visibleItems.length, 'items');
     container.insertAdjacentElement('afterbegin', section);
+    console.log('✓ Continue Watching section inserted successfully');
 }
 
 window.saveContinueWatchingFromPlayback = async function(payload) {
@@ -326,9 +369,10 @@ async function fetchAndBuildRow(rowId, fetchUrl, isTop10) {
             if (item.poster_path && count < 20) {
                 const type = item.media_type || (fetchUrl.includes('/tv') ? 'tv' : 'movie');
                 let topBadge = isTop10 && index < 10 ? `<div class="top-badge"><span class="top-text">Top</span><span class="top-num">${String(index+1).padStart(2,'0')}</span></div>` : '';
+                const mediaBadge = `<div class="media-badge">${type === 'tv' ? 'TV Show' : 'Movie'}</div>`;
                 row.insertAdjacentHTML('beforeend', `
                     <a href="details.html?id=${item.id}&type=${type}" class="movie-card">
-                    <div class="card-img-container">${topBadge}<img src="${IMG_URL + item.poster_path}" loading="lazy"></div>
+                    <div class="card-img-container">${topBadge}${mediaBadge}<img src="${IMG_URL + item.poster_path}" loading="lazy"></div>
                     <h3 class="card-title">${item.title || item.name}</h3>
                     <div class="card-meta">
                     <span class="rating"><i class="fas fa-star"></i> ${item.vote_average.toFixed(1)}</span>
@@ -372,7 +416,8 @@ window.loadFullDetails = async function(id, type, shouldPlay) {
             const playSection = document.getElementById('moviePlaySection');
             const playBtn = document.getElementById('finalPlayLink');
             if (currentImdbId && playSection && playBtn) {
-                const playUrl = `play.html?imdb=${currentImdbId}&type=movie`;
+                const detailsUrl = `details.html?id=${id}&type=movie`;
+                const playUrl = `play.html?imdb=${currentImdbId}&type=movie&id=${id}&detailsUrl=${encodeURIComponent(detailsUrl)}`;
                 playBtn.href = playUrl;
                 playBtn.removeAttribute('target');
                 playSection.style.display = 'block';
@@ -410,9 +455,10 @@ function buildSimpleRow(rowId, items, type) {
     if(!row) return;
     items.slice(0, 15).forEach(item => {
         if(item.poster_path) {
+            const mediaBadge = `<div class="media-badge">${type === 'tv' ? 'TV Show' : 'Movie'}</div>`;
             row.insertAdjacentHTML('beforeend', `
                 <a href="details.html?id=${item.id}&type=${type}" class="movie-card">
-                <div class="card-img-container"><img src="${IMG_URL + item.poster_path}" loading="lazy"></div>
+                <div class="card-img-container">${mediaBadge}<img src="${IMG_URL + item.poster_path}" loading="lazy"></div>
                 <h3 class="card-title">${item.title || item.name}</h3></a>`);
         }
     });
@@ -423,6 +469,7 @@ window.changeSeason = async function() {
     const grid = document.getElementById('episodesGrid');
     if(!grid) return;
     grid.innerHTML = '<p style="color:white;">Loading episodes...</p>';
+    const detailsUrl = `details.html?id=${currentTvId}&type=tv`;
     try {
         const res = await fetch(`${BASE_URL}/tv/${currentTvId}/season/${sNum}?api_key=${API_KEY}`);
         const data = await res.json();
@@ -431,7 +478,7 @@ window.changeSeason = async function() {
             const img = ep.still_path ? IMG_URL + ep.still_path : 'https://via.placeholder.com/300x169?text=No+Image';
             
             // TMDB ID එකත් ලින්ක් එකට යැව්වා
-            const playUrl = currentImdbId ? `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${sNum}&e=${ep.episode_number}` : '#';
+            const playUrl = currentImdbId ? `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${sNum}&e=${ep.episode_number}&detailsUrl=${encodeURIComponent(detailsUrl)}` : '#';
             
             grid.insertAdjacentHTML('beforeend', `
                 <a href="${playUrl}" class="episode-card">
@@ -529,9 +576,10 @@ async function loadMoreBrowseItems() {
         data.results.forEach(item => {
             if (item.poster_path) {
                 const type = item.media_type || (currentFetchUrl.includes('/tv') ? 'tv' : 'movie');
+                const mediaBadge = `<div class="media-badge">${type === 'tv' ? 'TV Show' : 'Movie'}</div>`;
                 grid.insertAdjacentHTML('beforeend', `
                     <a href="details.html?id=${item.id}&type=${type}" class="movie-card">
-                        <div class="card-img-container"><img src="${IMG_URL + item.poster_path}" loading="lazy"></div>
+                        <div class="card-img-container">${mediaBadge}<img src="${IMG_URL + item.poster_path}" loading="lazy"></div>
                         <h3 class="card-title">${item.title || item.name}</h3>
                     </a>
                 `);
@@ -549,10 +597,14 @@ async function loadMoreBrowseItems() {
 window.loadPlayEpisodes = async function(tmdbId, imdbId, currentSeason) {
     currentTvId = tmdbId;
     currentImdbId = imdbId;
+    currentPlaySeason = Number(currentSeason);
+    currentPlayEpisode = Number(new URLSearchParams(window.location.search).get('e') || 1);
+    availablePlaySeasons = [];
 
     try {
         const showRes = await fetch(`${BASE_URL}/tv/${tmdbId}?api_key=${API_KEY}`);
         const showData = await showRes.json();
+        availablePlaySeasons = (showData.seasons || []).filter(s => s.season_number > 0).map(s => s.season_number).sort((a, b) => a - b);
         document.getElementById('playTitle').innerText = showData.name || "TV Show";
 
         const select = document.getElementById('playSeasonSelect');
@@ -568,6 +620,7 @@ window.loadPlayEpisodes = async function(tmdbId, imdbId, currentSeason) {
 
 window.changePlaySeason = async function() {
     const sNum = document.getElementById('playSeasonSelect').value;
+    currentPlaySeason = Number(sNum);
     const grid = document.getElementById('playEpisodesGrid');
     if(!grid) return;
     grid.innerHTML = '<p style="color:white;">Loading episodes...</p>';
@@ -577,17 +630,64 @@ window.changePlaySeason = async function() {
         const data = await res.json();
         grid.innerHTML = '';
 
+        const nextButton = document.getElementById('nextEpisodeBtn');
+        const previousButton = document.getElementById('previousEpisodeBtn');
+        const currentEpisodeNumber = Number(currentPlayEpisode || 1);
+        let nextEpisodeUrl = '';
+        let previousEpisodeUrl = '';
+        const episodeNumbers = data.episodes.map(ep => ep.episode_number).sort((a, b) => a - b);
+        const nextEpisodeInSeason = episodeNumbers.find(epNum => epNum > currentEpisodeNumber);
+        const previousEpisodeNumbers = episodeNumbers.filter(epNum => epNum < currentEpisodeNumber);
+        const previousEpisodeInSeason = previousEpisodeNumbers.length ? previousEpisodeNumbers[previousEpisodeNumbers.length - 1] : null;
+        const detailsUrl = window.playDetailsUrl || (currentTvId ? `details.html?id=${currentTvId}&type=tv` : 'index.html');
+
+        if (currentPlaySeason === Number(sNum) && nextEpisodeInSeason) {
+            nextEpisodeUrl = `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${sNum}&e=${nextEpisodeInSeason}&detailsUrl=${encodeURIComponent(detailsUrl)}`;
+        } else if (currentPlaySeason === Number(sNum)) {
+            const nextSeason = availablePlaySeasons.find(seasonNum => seasonNum > Number(sNum));
+            if (nextSeason) {
+                nextEpisodeUrl = `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${nextSeason}&e=1&detailsUrl=${encodeURIComponent(detailsUrl)}`;
+            }
+        }
+
+        if (currentPlaySeason === Number(sNum) && previousEpisodeInSeason) {
+            previousEpisodeUrl = `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${sNum}&e=${previousEpisodeInSeason}&detailsUrl=${encodeURIComponent(detailsUrl)}`;
+        } else if (currentPlaySeason === Number(sNum)) {
+            const previousSeason = [...availablePlaySeasons].reverse().find(seasonNum => seasonNum < Number(sNum));
+            if (previousSeason) {
+                previousEpisodeUrl = `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${previousSeason}&e=1&detailsUrl=${encodeURIComponent(detailsUrl)}`;
+            }
+        }
+
+        window.playNextEpisodeUrl = nextEpisodeUrl;
+        window.playPreviousEpisodeUrl = previousEpisodeUrl;
+        const isTvPlayback = Boolean(currentTvId);
+        if (nextButton) {
+            nextButton.style.display = isTvPlayback ? 'flex' : 'none';
+            nextButton.href = nextEpisodeUrl || '#';
+            nextButton.classList.toggle('disabled', !nextEpisodeUrl);
+        }
+        if (previousButton) {
+            previousButton.style.display = isTvPlayback && previousEpisodeUrl ? 'flex' : 'none';
+            previousButton.href = previousEpisodeUrl || '#';
+            previousButton.classList.toggle('disabled', !previousEpisodeUrl);
+        }
+
         data.episodes.forEach(ep => {
             const img = ep.still_path ? IMG_URL + ep.still_path : 'https://via.placeholder.com/300x169?text=No+Image';
-            const playUrl = `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${sNum}&e=${ep.episode_number}`;
+            const playUrl = `play.html?id=${currentTvId}&imdb=${currentImdbId}&type=tv&s=${sNum}&e=${ep.episode_number}&detailsUrl=${encodeURIComponent(detailsUrl)}`;
+            const isCurrentEpisode = Number(sNum) === Number(currentPlaySeason) && Number(ep.episode_number) === Number(currentPlayEpisode);
+            const activeClass = isCurrentEpisode ? ' is-current-episode' : '';
+            const currentBadge = isCurrentEpisode ? '<span class="ep-current-badge">Now Playing</span>' : '';
             
             grid.insertAdjacentHTML('beforeend', `
-                <a href="${playUrl}" class="episode-card">
+                <a href="${playUrl}" class="episode-card${activeClass}" ${isCurrentEpisode ? 'aria-current="true"' : ''}>
                     <div class="ep-img-wrapper">
                         <img src="${img}" loading="lazy">
                         <div class="ep-play-icon"><i class="fas fa-play-circle"></i></div>
                     </div>
                     <div class="ep-info">
+                        ${currentBadge}
                         <div class="ep-title">${ep.episode_number}. ${ep.name}</div>
                         <div class="ep-desc">${ep.overview || 'No description available.'}</div>
                     </div>

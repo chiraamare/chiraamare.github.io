@@ -81,6 +81,7 @@ h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 15px; }
 .top-badge { position: absolute; left: 0; top: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 32px; height: 42px; background: var(--primary); box-shadow: 0 4px 10px var(--accent-glow); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%); font-weight: 800; color: white; }
 .top-text { font-size: 9px; text-transform: uppercase; line-height: 1; }
 .top-num { font-size: 14px; line-height: 1; margin-top: 1px; }
+.media-badge { position: absolute; right: 8px; top: 8px; background: rgba(5,7,10,0.8); color: white; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(8px); z-index: 4; }
 .card-title { font-size: 14px; font-weight: 500; margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s; }
 .movie-card:hover .card-title { color: var(--primary); }
 .card-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-mid); margin-top: 4px; }
@@ -126,8 +127,12 @@ h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: 15px; }
     
     .movie-card { width: 130px; }
     .section-header { align-items: flex-start; flex-direction: column; }
-    .resume-card { width: 280px; grid-template-columns: 1fr; }
-    .resume-title { font-size: 18px; }
+    .continue-row { gap: 16px; }
+    .resume-card { width: 130px; grid-template-columns: 1fr; padding: 0; background: transparent; border: none; box-shadow: none; overflow: visible; }
+    .resume-poster { width: 100%; border-radius: 10px; }
+    .resume-copy { padding-top: 10px; }
+    .resume-kicker, .resume-meta, .resume-actions { display: none; }
+    .resume-title { font-size: 14px; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mute-btn { top: 130px; right: 20px; }
     .episode-grid { grid-template-columns: 1fr; }
     .filtered-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
