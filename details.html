@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmo | Details</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="details-page">
+    
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar" style="background: transparent;">
+        <a href="index.html" class="logo"><span class="text-white">FILMO</span></a>
+
+        <!-- සර්ච් බාර් එක Header එක මැදට -->
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search movies, tv shows..." autocomplete="off">
+            <div id="searchSuggestions" class="suggestions-box"></div>
+        </div>
+
+        <div class="nav-links">
+            <a href="browse.html" class="nav-link">Browse</a>
+        </div>
+    </nav>
+
+    <header id="hero" class="hero-section details-hero">
+        <div id="heroVideoContainer" class="hero-bg-container"></div>
+        <div class="hero-vignette-side"></div>
+        <div class="hero-vignette-bottom"></div>
+        <div class="hero-glow"></div>
+        
+        <div class="hero-content">
+            <a href="index.html" class="back-btn" style="display: inline-flex; margin-bottom: 20px;"><i class="fas fa-chevron-left"></i> Back to Filmo</a>
+            
+            <h1 id="heroTitle" class="hero-title">Loading...</h1>
+            <div class="hero-meta" id="heroMeta"></div>
+            <p id="heroDesc" class="hero-desc"></p>
+            <div class="hero-buttons" id="moviePlaySection" style="display: none; margin-top: 20px;">
+                <a href="#" class="btn btn-play" id="finalPlayLink" target="_blank" style="padding: 15px 40px; font-size: 18px;">
+                    <i class="fas fa-play"></i> Watch Now
+                </a>
+            </div>
+        </div>
+        
+        <button id="muteBtn" class="mute-btn" onclick="toggleMute()"><i class="fas fa-volume-mute"></i></button>
+    </header>
+
+    <main class="main-content" style="margin-top: -80px; padding-bottom: 50px;">
+        <div id="tvShowSection" style="display: none; margin-bottom: 50px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Episodes</h2>
+                <select id="seasonSelect" class="season-dropdown" onchange="changeSeason()"></select>
+            </div>
+            <div id="episodesGrid" class="episode-grid"></div>
+        </div>
+        
+        <div class="movie-row">
+            <h2>Top Cast</h2>
+            <div class="cast-list" id="castList"></div>
+        </div>
+        
+        <div id="similarContent"></div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const type = urlParams.get('type') || 'movie';
+            const shouldPlay = urlParams.get('play');
+            if(id) { loadFullDetails(id, type, shouldPlay); }
+        });
+    </script>
+</body>
+</html>
