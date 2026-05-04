@@ -14,7 +14,7 @@
             position: absolute; top: 20px; left: 20px; z-index: 100; color: white; text-decoration: none; 
             font-size: 1.1rem; font-weight: 600; background: rgba(0,0,0,0.6); padding: 10px 20px; 
             border-radius: 30px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; 
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; 
+            border: 1px solid rgba(255,255,255,0.1); transition: opacity 0.4s, background 0.3s; 
         }
         .back-btn:hover { background: rgba(220,38,38,0.8); border-color: #dc2626; }
 
@@ -23,9 +23,16 @@
             position: absolute; top: 20px; right: 20px; z-index: 100; color: white; text-decoration: none; 
             font-size: 1.1rem; font-weight: 600; background: rgba(0,0,0,0.6); padding: 10px 20px; 
             border-radius: 30px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; 
-            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1); transition: opacity 0.4s, background 0.3s; cursor: pointer;
         }
         .episodes-btn:hover { background: rgba(220,38,38,0.8); border-color: #dc2626; }
+
+        /* Auto-hide overlay buttons when idle so player controls are accessible */
+        .ui-hidden .back-btn,
+        .ui-hidden .episodes-btn {
+            opacity: 0;
+            pointer-events: none;
+        }
         
         iframe { width: 100vw; height: 100vh; border: none; display: block; }
 
@@ -90,7 +97,7 @@
         <i class="fas fa-list"></i> Episodes
     </button>
 
-    <iframe id="videoPlayer" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    <iframe id="videoPlayer" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
 
     <!-- වීඩියෝ එක උඩින් ලෝඩ් වෙන Episodes Pop-up එක -->
     <div id="episodesOverlay" class="episodes-overlay">
@@ -107,10 +114,31 @@
 
     <script src="script.js"></script>
     <script>
+        // Auto-hide UI buttons after 3s of inactivity so player controls are accessible
+        const playerUI = (() => {
+            let hideTimer;
+            let lastMove = 0;
+            function show() {
+                document.body.classList.remove('ui-hidden');
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => document.body.classList.add('ui-hidden'), 3000);
+            }
+            // Throttle mousemove to at most once per 200ms
+            document.addEventListener('mousemove', () => {
+                const now = Date.now();
+                if (now - lastMove > 200) { lastMove = now; show(); }
+            });
+            document.addEventListener('touchstart', show);
+            show();
+            return { show };
+        })();
+
         // Modal එක Open/Close කරන කෑල්ල
         function toggleEpisodes() {
             const overlay = document.getElementById('episodesOverlay');
             overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
+            // Tapping the Episodes button counts as activity
+            playerUI.show();
         }
 
         window.onload = () => {
