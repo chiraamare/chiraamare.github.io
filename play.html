@@ -29,21 +29,14 @@
 
         .back-btn { left: 20px; }
         .episodes-btn { right: 20px; }
-        .player-actions { position: absolute; bottom: 10px; left: 0; width: 100%; height: 0; z-index: 100; pointer-events: none; opacity: 1; }
-        .player-actions > * { pointer-events: auto; }
-        .episode-nav-btn { position: fixed; padding: 12px 14px; justify-content: center; top: 50%; transform: translateY(-50%); z-index: 100; transition: opacity 0.3s ease; }
-        .episode-nav-btn i { font-size: 1.4rem; }
+        .episode-nav-btn { position: fixed; padding: 12px 14px; top: 50%; transform: translateY(-50%); z-index: 100; opacity: 0; transition: opacity 0.3s; }
         #previousEpisodeBtn { left: 20px; }
         #nextEpisodeBtn { right: 20px; }
-        .episodes-btn { position: absolute; min-width: 132px; justify-content: center; }
-        .back-btn:hover, .episodes-btn:hover, .episode-nav-btn:hover { background: rgba(220,38,38,0.8); border-color: #dc2626; }
-        .episode-nav-btn.disabled { opacity: 0.45; pointer-events: none; }
-        .episode-nav-btn.disabled { opacity: 0.45; pointer-events: none; }
         
         .iframe-container { flex: 1; width: 100%; height: 100%; position: relative; z-index: 1; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; display: block; position: absolute; top: 0; left: 0; }
 
-        /* Pop-up Modal */
+        /* Pop-up Modal Design */
         .episodes-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000;
             display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -63,35 +56,36 @@
             display: flex !important; 
             flex-direction: column !important; 
             gap: 12px !important; 
-            overflow-y: auto !important; 
+            overflow-y: scroll !important;
             padding-right: 5px !important; 
             flex: 1;
         }
         .modal-grid::-webkit-scrollbar { width: 5px; }
         .modal-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* Episode Card - PC Desktop View */
         .modal-grid .episode-card { 
             display: grid !important;
-            grid-template-columns: 160px 1fr !important;
+            grid-template-columns: 140px 1fr !important;
             gap: 15px !important;
             background: rgba(255,255,255,0.05) !important; 
             border: 1px solid rgba(255,255,255,0.1) !important; 
             border-radius: 12px !important; 
-            padding: 10px !important; 
+            padding: 12px !important; 
+            height: auto !important;
+            min-height: 110px !important;
             transition: 0.3s; 
             text-decoration: none;
             align-items: center;
-            min-height: 100px !important;
+            flex-shrink: 0 !important;
         }
         .modal-grid .episode-card:hover { background: rgba(255,255,255,0.1) !important; border-color: #dc2626 !important; }
+        
+        /* Now Playing Style */
         .modal-grid .episode-card.is-current-episode { 
             background: linear-gradient(135deg, rgba(220,38,38,0.22), rgba(255,255,255,0.06)) !important;
             border-color: rgba(220,38,38,0.8) !important;
             box-shadow: 0 0 0 1px rgba(220,38,38,0.35), 0 12px 30px rgba(220,38,38,0.14) !important;
         }
-        .modal-grid .episode-card.is-current-episode .ep-title { color: #fff !important; }
-        .modal-grid .episode-card.is-current-episode .ep-play-icon { opacity: 1 !important; color: #fff !important; }
         
         .modal-grid .ep-img-wrapper { 
             width: 100% !important; 
@@ -103,119 +97,22 @@
         }
         .modal-grid .ep-img-wrapper img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
         
-        .modal-grid .ep-info { 
-            display: flex !important; 
-            flex-direction: column !important; 
-            justify-content: center !important; 
-            overflow: hidden;
-        }
-        .ep-current-badge { display: inline-flex; align-self: flex-start; margin-bottom: 6px; padding: 5px 9px; border-radius: 999px; background: rgba(220,38,38,0.95); color: white; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
-        .modal-grid .ep-title { font-size: 14px !important; font-weight: 700 !important; color: white !important; margin-bottom: 4px !important; }
-        .modal-grid .ep-desc { font-size: 12px !important; color: rgba(238, 241, 246, 0.6) !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; white-space: normal !important; line-height: 1.3; }
+        .modal-grid .ep-info { display: flex !important; flex-direction: column !important; justify-content: center !important; }
+        .ep-current-badge { display: inline-flex; align-self: flex-start; margin-bottom: 6px; padding: 5px 9px; border-radius: 999px; background: rgba(220,38,38,0.95); color: white; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+        .modal-grid .ep-title { font-size: 15px !important; font-weight: 700 !important; color: white !important; margin-bottom: 4px !important; }
+        .modal-grid .ep-desc { font-size: 12px !important; color: rgba(238, 241, 246, 0.6) !important; display: -webkit-box !important; -webkit-line-clamp: 3 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; white-space: normal !important; line-height: 1.4; }
 
         .season-dropdown { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 15px; outline: none; cursor: pointer; }
 
-        /* Episode Card - Mobile Phone View (මෙතනින් තමයි පින්තූරෙයි අකුරුයි එක යට එක හැදුවේ) */
         @media (max-width: 600px) {
-            .episodes-modal {
-                width: 90% !important;
-                max-width: 100% !important;
-                height: 85vh !important;
-                max-height: 85vh !important;
-                min-height: 0 !important;
-                padding: 16px !important;
-                display: flex !important;
-                flex-direction: column !important;
-            }
-            .modal-header {
-                margin-bottom: 12px !important;
-                flex-shrink: 0;
-            }
-            .modal-header h2 { font-size: 1.3rem; }
-            .season-dropdown { margin-bottom: 12px !important; flex-shrink: 0; }
-            .modal-grid {
-                gap: 8px !important;
-                padding-right: 10px !important;
-                flex: 1 !important;
-                min-height: 0 !important;
-                overflow-y: scroll !important;
-                overflow-x: hidden !important;
-                -webkit-overflow-scrolling: touch;
-                touch-action: pan-y;
-            }
-            .modal-grid::-webkit-scrollbar {
-                width: 8px !important;
-            }
-            .modal-grid::-webkit-scrollbar-track {
-                background: rgba(255,255,255,0.05) !important;
-            }
-            .modal-grid::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,0.4) !important;
-                border-radius: 4px !important;
-            }
-            .modal-grid::-webkit-scrollbar-thumb:hover {
-                background: rgba(255,255,255,0.6) !important;
-            }
             .modal-grid .episode-card { 
-                grid-template-columns: 100px 1fr !important;
-                height: auto !important; 
-                padding: 8px !important;
-                gap: 8px !important;
-                min-height: auto !important;
-                align-items: center !important;
+                grid-template-columns: 130px 1fr !important;
+                min-height: 90px !important;
             }
-            .modal-grid .ep-img-wrapper { 
-                width: 100px !important; 
-                height: 56px !important;
-                aspect-ratio: 16/9 !important;
-                flex-shrink: 0;
-            }
-            .modal-grid .ep-img-wrapper img {
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: cover !important;
-            }
-            .modal-grid .ep-info {
-                width: 100% !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-            }
-            .modal-grid .ep-title { 
-                font-size: 12px !important;
-                word-break: break-word !important;
-                line-height: 1.2 !important;
-                margin-bottom: 3px !important;
-            }
-            .modal-grid .ep-desc { 
-                font-size: 10px !important;
-                line-height: 1.3 !important;
-            }
-            .ep-current-badge {
-                padding: 3px 6px !important;
-                font-size: 8px !important;
-                margin-bottom: 2px !important;
-            }
+            .modal-grid .ep-img-wrapper { width: 130px !important; }
             .back-btn, .episodes-btn { padding: 8px 15px; font-size: 0.8rem; top: 10px; }
-            .player-actions { bottom: 10px; left: 0; width: 100%; height: 0; }
-            .episode-nav-btn { padding: 10px 11px; position: fixed; top: 50%; transform: translateY(-50%); }
-            .episode-nav-btn i { font-size: 1.2rem; }
-            #previousEpisodeBtn { left: 12px; }
-            #nextEpisodeBtn { right: 12px; }
-            .episodes-btn { min-width: 96px; font-size: 0.8rem; padding: 8px 12px; }
-        }
-
-        @media (max-width: 600px) and (orientation: portrait) {
-            .episodes-modal {
-                height: 80vh !important;
-                max-height: 80vh !important;
-            }
-            .modal-grid {
-                flex: 1 1 auto !important;
-                min-height: 0 !important;
-                overflow-y: scroll !important;
-                overscroll-behavior: contain;
-            }
+            .episodes-btn { min-width: 96px; }
         }
     </style>
 </head>
@@ -224,10 +121,11 @@
     <div class="player-controls">
         <a href="#" id="backBtn" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
         <button id="showEpisodesBtn" class="episodes-btn" style="display: none;" onclick="toggleEpisodes()"><i class="fas fa-list"></i> Episodes</button>
-        <div class="player-actions">
-            <a href="#" id="previousEpisodeBtn" class="episode-nav-btn" title="Previous Episode"><i class="fas fa-backward-step"></i></a>
-            <a href="#" id="nextEpisodeBtn" class="episode-nav-btn" title="Next Episode"><i class="fas fa-forward-step"></i></a>
-        </div>
+    </div>
+
+    <div class="player-actions">
+        <a href="#" id="previousEpisodeBtn" class="episode-nav-btn" title="Previous Episode"><i class="fas fa-backward-step"></i></a>
+        <a href="#" id="nextEpisodeBtn" class="episode-nav-btn" title="Next Episode"><i class="fas fa-forward-step"></i></a>
     </div>
 
     <div class="iframe-container">
@@ -251,78 +149,28 @@
             const overlay = document.getElementById('episodesOverlay');
             overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
         }
-        function buildPlayerSrc(type, imdb, season, episode) {
-            const subtitleHint = 'subtitleLang=en';
-            if (type === 'movie') {
-                return `https://streamimdb.ru/embed/movie/${imdb}?${subtitleHint}`;
-            }
 
-            return `https://streamimdb.ru/embed/tv/${imdb}/${season}/${episode}?${subtitleHint}`;
-        }
         window.onload = async () => {
             const params = new URLSearchParams(window.location.search);
             const imdb = params.get('imdb'), type = params.get('type'), s = params.get('s'), e = params.get('e'), id = params.get('id');
             const detailsUrl = params.get('detailsUrl') || (id ? `details.html?id=${id}&type=${type}` : 'index.html');
             const player = document.getElementById('videoPlayer');
             const backBtn = document.getElementById('backBtn');
-            const episodesBtn = document.getElementById('showEpisodesBtn');
-            const nextEpisodeButton = document.getElementById('nextEpisodeBtn');
-            const previousEpisodeButton = document.getElementById('previousEpisodeBtn');
 
-            window.playDetailsUrl = detailsUrl;
-
-            if (backBtn) {
-                backBtn.href = detailsUrl;
-            }
-
-            if (episodesBtn) {
-                episodesBtn.style.right = '20px';
-            }
-
-            window.goToNextEpisode = function() {
-                if (window.playNextEpisodeUrl) {
-                    window.location.href = window.playNextEpisodeUrl;
-                }
-            };
-
-            window.goToPreviousEpisode = function() {
-                if (window.playPreviousEpisodeUrl) {
-                    window.location.href = window.playPreviousEpisodeUrl;
-                }
-            };
-
-            if (nextEpisodeButton) {
-                nextEpisodeButton.onclick = (event) => {
-                    event.preventDefault();
-                    if (window.playNextEpisodeUrl) {
-                        window.goToNextEpisode();
-                    }
-                };
-            }
-
-            if (previousEpisodeButton) {
-                previousEpisodeButton.onclick = (event) => {
-                    event.preventDefault();
-                    window.goToPreviousEpisode();
-                };
-            }
-
-            window.addEventListener('message', (event) => {
-                const data = event.data;
-                if (!data || typeof data !== 'object') return;
-
-                const ended = data.type === 'ENDED' || data.type === 'END' || data.event === 'ended' || data.state === 'ended' || data.action === 'ended';
-                if (ended && window.playNextEpisodeUrl) {
-                    window.location.href = window.playNextEpisodeUrl;
-                }
-            });
+            if (backBtn) backBtn.href = detailsUrl;
 
             if(imdb) {
-                player.src = buildPlayerSrc(type, imdb, s || 1, e || 1);
+                const subtitleHint = 'subtitleLang=en';
+                player.src = (type === 'movie') ? 
+                    `https://streamimdb.ru/embed/movie/${imdb}?${subtitleHint}` : 
+                    `https://streamimdb.ru/embed/tv/${imdb}/${s || 1}/${e || 1}?${subtitleHint}`;
+
                 if(type === 'tv' && id) {
                     document.getElementById('showEpisodesBtn').style.display = 'flex';
                     loadPlayEpisodes(id, imdb, s);
                 }
+
+                // මෙන්න උඹේ Index එකේ Continue Watching වැඩ කරන්න ඕන කෝඩ් එක
                 if (window.saveContinueWatchingFromPlayback) {
                     await window.saveContinueWatchingFromPlayback({
                         type,
@@ -335,39 +183,17 @@
                 }
             }
 
-            // Auto-hide/show controls like a normal media player
-            let hideControlsTimeout;
-            const controlsToHide = [
-                document.getElementById('previousEpisodeBtn'),
-                document.getElementById('nextEpisodeBtn')
-            ];
-
-            function hideControls() {
-                controlsToHide.forEach(control => {
-                    if (control) control.style.opacity = '0';
-                });
+            // Auto-hide Nav Buttons
+            let hideTimeout;
+            const navs = [document.getElementById('previousEpisodeBtn'), document.getElementById('nextEpisodeBtn')];
+            function showNavs() {
+                navs.forEach(n => { if(n) n.style.opacity = '1'; });
+                clearTimeout(hideTimeout);
+                hideTimeout = setTimeout(() => navs.forEach(n => { if(n) n.style.opacity = '0'; }), 3000);
             }
-
-            function showControls() {
-                controlsToHide.forEach(control => {
-                    if (control) control.style.opacity = '1';
-                });
-                clearTimeout(hideControlsTimeout);
-                hideControlsTimeout = setTimeout(hideControls, 3000);
-            }
-
-            // Show controls initially
-            showControls();
-
-            // Show controls and reset timer on any mouse move or touch anywhere on display
-            window.addEventListener('pointermove', showControls, true);
-            window.addEventListener('mousemove', showControls, true);
-            window.addEventListener('touchstart', showControls, true);
-            window.addEventListener('touchmove', showControls, true);
-            document.body.addEventListener('pointermove', showControls, true);
-            document.body.addEventListener('mousemove', showControls, true);
-            document.body.addEventListener('touchstart', showControls, true);
-            document.body.addEventListener('touchmove', showControls, true);
+            window.addEventListener('pointermove', showNavs);
+            window.addEventListener('touchstart', showNavs);
+            showNavs();
         }
     </script>
 </body>
