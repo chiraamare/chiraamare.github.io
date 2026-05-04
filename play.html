@@ -34,9 +34,7 @@
         .iframe-container { flex: 1; width: 100%; height: 100%; position: relative; z-index: 1; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; display: block; position: absolute; top: 0; left: 0; }
 
-        /* =========================================
-           EPISODES POP-UP (FIXED HEIGHT ISSUE)
-        ========================================= */
+        /* Pop-up Modal */
         .episodes-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000;
             display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
@@ -52,7 +50,6 @@
         .modal-header h2 { margin: 0; font-size: 1.6rem; color: white; font-weight: 800; }
         .close-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
-        /* ලිස්ට් එකේ උස හරියට හැදුවා (Important දාලා Fix කළා) */
         .modal-grid { 
             display: flex !important; 
             flex-direction: column !important; 
@@ -64,26 +61,25 @@
         .modal-grid::-webkit-scrollbar { width: 5px; }
         .modal-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
-        /* මේක තමයි උඹට ඕන වුණේ - Card එකේ පෙනුම */
+        /* Episode Card - PC Desktop View */
         .modal-grid .episode-card { 
             display: grid !important;
-            grid-template-columns: 140px 1fr !important; /* පින්තූරෙට ලොකු ඉඩක් */
+            grid-template-columns: 160px 1fr !important;
             gap: 15px !important;
             background: rgba(255,255,255,0.05) !important; 
             border: 1px solid rgba(255,255,255,0.1) !important; 
             border-radius: 12px !important; 
             padding: 10px !important; 
-            height: 100px !important; /* උස හරියටම දුන්නා පින්තූර තැලෙන්නේ නැති වෙන්න */
-            min-height: 100px !important;
             transition: 0.3s; 
             text-decoration: none;
             align-items: center;
+            min-height: 100px !important;
         }
         .modal-grid .episode-card:hover { background: rgba(255,255,255,0.1) !important; border-color: #dc2626 !important; }
         
         .modal-grid .ep-img-wrapper { 
             width: 100% !important; 
-            height: 100% !important; 
+            aspect-ratio: 16/9 !important;
             border-radius: 8px !important; 
             overflow: hidden; 
             position: relative; 
@@ -95,16 +91,24 @@
             display: flex !important; 
             flex-direction: column !important; 
             justify-content: center !important; 
-            height: 100% !important;
             overflow: hidden;
         }
-        .modal-grid .ep-title { font-size: 14px !important; font-weight: 700 !important; color: white !important; margin-bottom: 4px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .modal-grid .ep-title { font-size: 14px !important; font-weight: 700 !important; color: white !important; margin-bottom: 4px !important; }
         .modal-grid .ep-desc { font-size: 12px !important; color: rgba(238, 241, 246, 0.6) !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; white-space: normal !important; line-height: 1.3; }
 
-        .season-dropdown { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 15px; outline: none; }
+        .season-dropdown { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 10px; width: 100%; margin-bottom: 15px; outline: none; cursor: pointer; }
 
+        /* Episode Card - Mobile Phone View (මෙතනින් තමයි පින්තූරෙයි අකුරුයි එක යට එක හැදුවේ) */
         @media (max-width: 600px) {
-            .modal-grid .episode-card { grid-template-columns: 110px 1fr !important; height: 80px !important; min-height: 80px !important; }
+            .modal-grid .episode-card { 
+                grid-template-columns: 1fr !important; /* එක පේළියක් විතරයි */
+                height: auto !important; 
+                padding: 10px !important;
+            }
+            .modal-grid .ep-img-wrapper { 
+                width: 100% !important; 
+                max-width: 250px; /* පින්තූරය ඕනෑවට වඩා ලොකු වෙන්න දුන්නේ නැහැ */
+            }
             .modal-header h2 { font-size: 1.3rem; }
             .back-btn, .episodes-btn { padding: 8px 15px; font-size: 0.8rem; top: 10px; }
         }
