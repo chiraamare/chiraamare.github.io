@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playing - Filmo</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; overflow: hidden; font-family: 'Inter', sans-serif; }
         
-        /* ලස්සන Back Button එක */
+        /* වම් පැත්තේ තියෙන Back බටන් එක */
         .back-btn { 
             position: absolute; top: 20px; left: 20px; z-index: 100; color: white; text-decoration: none; 
             font-size: 1.1rem; font-weight: 600; background: rgba(0,0,0,0.6); padding: 10px 20px; 
@@ -16,45 +17,127 @@
             border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; 
         }
         .back-btn:hover { background: rgba(220,38,38,0.8); border-color: #dc2626; }
+
+        /* දකුණු පැත්තේ තියෙන අලුත් Episodes බටන් එක */
+        .episodes-btn { 
+            position: absolute; top: 20px; right: 20px; z-index: 100; color: white; text-decoration: none; 
+            font-size: 1.1rem; font-weight: 600; background: rgba(0,0,0,0.6); padding: 10px 20px; 
+            border-radius: 30px; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 8px; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer;
+        }
+        .episodes-btn:hover { background: rgba(220,38,38,0.8); border-color: #dc2626; }
         
-        /* Iframe එක ෆුල් ස්ක්‍රීන් කිරීම */
-        iframe { width: 100%; height: 100%; border: none; }
+        iframe { width: 100vw; height: 100vh; border: none; display: block; }
+
+        /* =========================================
+           POP-UP MODAL DESIGN (FIXED)
+        ========================================= */
+        .episodes-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000;
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .episodes-modal {
+            background: #0b0f14; width: 95%; max-width: 700px; height: 85vh; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; padding: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9); animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .close-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+        .close-btn:hover { background: #dc2626; }
+
+        /* ලිස්ට් එක ලස්සනට පේළියට හදපු අලුත් කෑල්ල */
+        .modal-grid { display: flex !important; flex-direction: column !important; gap: 15px !important; overflow-y: auto !important; padding-right: 10px !important; }
+        .modal-grid::-webkit-scrollbar { width: 6px; }
+        .modal-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+        .modal-grid .episode-card { 
+            display: flex !important; flex-direction: row !important; align-items: center; 
+            background: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.05) !important; 
+            border-radius: 12px !important; height: auto !important; padding: 10px !important; 
+            transition: 0.3s; text-decoration: none;
+        }
+        .modal-grid .episode-card:hover { background: rgba(255,255,255,0.08) !important; border-color: #dc2626 !important; transform: translateX(5px) !important; }
+        
+        .modal-grid .ep-img-wrapper { width: 140px !important; min-width: 140px; aspect-ratio: 16/9 !important; border-radius: 8px !important; overflow: hidden; position: relative; background: #222; }
+        .modal-grid .ep-img-wrapper img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+        
+        .modal-grid .ep-play-icon { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); opacity: 0; transition: 0.2s; font-size: 25px; color: white;}
+        .modal-grid .episode-card:hover .ep-play-icon { opacity: 1; color: #dc2626; }
+
+        .modal-grid .ep-info { padding: 0 0 0 15px !important; display: flex !important; flex-direction: column !important; justify-content: center !important; flex: 1; overflow: hidden;}
+        .modal-grid .ep-title { font-size: 15px !important; font-weight: 600 !important; color: white !important; margin-bottom: 5px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .modal-grid .ep-desc { font-size: 12px !important; color: rgba(238, 241, 246, 0.65) !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; white-space: normal !important;}
+
+        /* ෆෝන් එකෙන් බලද්දි පින්තූරෙයි අකුරුයි උඩයි යටයි වැටෙන්න හැදුවා */
+        @media (max-width: 600px) {
+            .modal-grid .episode-card { flex-direction: column !important; align-items: flex-start !important; }
+            .modal-grid .ep-img-wrapper { width: 100% !important; aspect-ratio: 16/9 !important; }
+            .modal-grid .ep-info { padding: 15px 0 0 0 !important; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Back බටන් එක -->
     <a href="#" onclick="history.back(); return false;" class="back-btn">
-        <i class="fas fa-arrow-left"></i> Back to Details
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 
-    <!-- වීඩියෝ එක ප්ලේ වෙන Iframe එක -->
+    <!-- අලුත් බටන් එක (මේක පෙන්නන්නේ TV Show එකක් ප්ලේ වෙද්දි විතරයි) -->
+    <button id="showEpisodesBtn" class="episodes-btn" style="display: none;" onclick="toggleEpisodes()">
+        <i class="fas fa-list"></i> Episodes
+    </button>
+
     <iframe id="videoPlayer" allowfullscreen allow="autoplay; fullscreen"></iframe>
 
+    <!-- වීඩියෝ එක උඩින් ලෝඩ් වෙන Episodes Pop-up එක -->
+    <div id="episodesOverlay" class="episodes-overlay">
+        <div class="episodes-modal">
+            <div class="modal-header">
+                <h2 id="playTitle">Loading...</h2>
+                <button class="close-btn" onclick="toggleEpisodes()"><i class="fas fa-times"></i></button>
+            </div>
+            <select id="playSeasonSelect" class="season-dropdown" style="width: 100%; margin-bottom: 20px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 10px; outline: none; font-size: 15px; cursor: pointer;" onchange="changePlaySeason()">
+            </select>
+            <div id="playEpisodesGrid" class="episode-grid modal-grid"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
     <script>
-        // URL එකෙන් විස්තර අරගෙන streamimdb.ru ලින්ක් එක Iframe එකට දානවා
+        // Modal එක Open/Close කරන කෑල්ල
+        function toggleEpisodes() {
+            const overlay = document.getElementById('episodesOverlay');
+            overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
+        }
+
         window.onload = () => {
             const params = new URLSearchParams(window.location.search);
             const imdb = params.get('imdb');
             const type = params.get('type');
-            const s = params.get('s'); // Season
-            const e = params.get('e'); // Episode
-            
+            const s = params.get('s'); 
+            const e = params.get('e'); 
+            const id = params.get('id'); // TMDB ID එක
             const player = document.getElementById('videoPlayer');
             
             if(imdb) {
                 if(type === 'movie') {
-                    // Movie ලින්ක් එක
                     player.src = `https://streamimdb.ru/embed/movie/${imdb}`;
                 } else if(type === 'tv') {
-                    // TV Show ලින්ක් එක (Season සහ Episode එකත් එක්ක)
                     player.src = `https://streamimdb.ru/embed/tv/${imdb}/${s}/${e}`;
+                    
+                    // TV Show එකක් නම් Episodes Button එක දකුණු පැත්තෙන් පෙන්නනවා
+                    if(id) {
+                        document.getElementById('showEpisodesBtn').style.display = 'flex';
+                        loadPlayEpisodes(id, imdb, s);
+                    }
                 }
             } else {
-                document.body.innerHTML = '<h2 style="color:white; text-align:center; margin-top:20%; font-family:sans-serif;">Video not found!</h2>';
+                document.body.innerHTML = '<h2 style="color:white; text-align:center; margin-top:20%;">Video not found!</h2>';
             }
         }
     </script>
-
 </body>
 </html>
