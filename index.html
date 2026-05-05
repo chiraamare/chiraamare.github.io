@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FilmoGo | Premium Movies & TV Shows</title>
+    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="logo">
+            <i class="fas fa-play-circle" style="color: var(--primary);"></i>
+            <span class="text-white">FilmoGo</span>
+        </a>
+
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search movies, tv shows..." autocomplete="off">
+            <div id="searchSuggestions" class="suggestions-box"></div>
+        </div>
+
+        <div class="nav-links">
+            <a href="#" class="nav-link mobile-search-btn" id="mobileSearchBtn"><i class="fas fa-search"></i></a>
+            <a href="index.html" class="nav-link active"><i class="fas fa-home"></i> <span class="nav-text">Home</span></a>
+            <a href="browse.html" class="nav-link"><i class="fas fa-compass"></i> <span class="nav-text">Browse</span></a>
+        </div>
+    </nav>
+
+    <header id="hero" class="hero-section">
+        <div id="heroVideoContainer" class="hero-bg-container"></div>
+        <div class="hero-vignette-side"></div>
+        <div class="hero-vignette-bottom"></div>
+        <div class="hero-glow"></div>
+        
+        <div class="hero-content">
+            <h1 id="heroTitle" class="hero-title">Loading...</h1>
+            <div class="hero-meta" id="heroMeta"></div>
+            <p id="heroDesc" class="hero-desc">Please wait while we fetch the best content...</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-play" id="heroPlayBtn"><i class="fas fa-play"></i> Play</a>
+                <button class="btn btn-info" id="heroInfoBtn"><i class="fas fa-info-circle"></i> See More</button>
+            </div>
+        </div>
+        
+        <div class="hero-slider-indicators" id="heroIndicators"></div>
+        <div class="hero-controls">
+            <button id="trailerPlayBtn" class="control-btn" onclick="toggleHeroTrailer()" title="Play/Pause Trailer"><i class="fas fa-play"></i></button>
+            <button id="muteBtn" class="control-btn" onclick="toggleMute()" title="Mute/Unmute" style="display: none;"><i class="fas fa-volume-mute"></i></button>
+        </div>
+    </header>
+
+    <main class="main-content" id="mainContent"></main>
+
+    <!-- Footer Section -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <i class="fas fa-play-circle" style="color: var(--primary);"></i>
+                        <span class="text-white">FilmoGo</span>
+                    </a>
+                    <p class="footer-about">The ultimate destination to watch your favorite movies and TV series in the highest quality, all in one place.</p>
+                </div>
+                <div class="footer-links-group">
+                    <div class="footer-col">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="browse.html">Browse</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-col">
+                        <h3>Legal & Safety</h3>
+                        <ul>
+                            <li><a href="disclaimer.html">Disclaimer & DMCA</a></li>
+                            <li><a href="privacy.html">Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-middle">
+                <p class="footer-disclaimer"><strong>Disclaimer:</strong> FilmoGo website does not store any files or videos on its servers. We only link and point to publicly available video links hosted on third-party services. Therefore, we do not accept any responsibility or liability for the legality, accuracy, or safety of the content.</p>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FilmoGo. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
