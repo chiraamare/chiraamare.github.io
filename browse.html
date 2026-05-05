@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse | FilmoGo</title>
+    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .browse-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 5%;
+            margin: 80px auto 0;
+        }
+        .filters-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .filter-group h3 {
+            font-size: 13px;
+            color: var(--text-mid, #aaa);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .content-panel {
+            flex: 1;
+        }
+        .mobile-filter-btn, .close-filters-btn {
+            display: none;
+        }
+        @media (max-width: 767px) {
+            .mobile-filter-btn {
+                display: flex; align-items: center; justify-content: center; gap: 8px;
+                width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.08);
+                border: 1px solid var(--border-subtle); color: white;
+                border-radius: 12px; font-size: 15px; font-weight: 600; margin-bottom: 10px;
+            }
+            .filters-sidebar {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+                background: rgba(5,7,10,0.98); backdrop-filter: blur(20px); z-index: 2000;
+                padding: 70px 20px 30px; overflow-y: auto;
+                transform: translateX(-100%); transition: transform 0.3s ease;
+            }
+            .filters-sidebar.active { transform: translateX(0); }
+            .close-filters-btn {
+                display: flex; align-items: center; justify-content: center;
+                position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1);
+                border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 16px;
+            }
+        }
+        @media (min-width: 768px) {
+            .browse-layout { flex-direction: row; align-items: flex-start; }
+            .filters-sidebar { flex: 0 0 250px; position: sticky; top: 100px; max-height: calc(100vh - 120px); overflow-y: auto; }
+            .filters-sidebar::-webkit-scrollbar { width: 4px; }
+            .filters-sidebar::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        }
+    </style>
+</head>
+<body class="browse-page">
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar" style="background: rgba(5,7,10,0.95); backdrop-filter: blur(10px);">
+        <a href="index.html" class="logo">
+            <i class="fas fa-play-circle" style="color: var(--primary);"></i>
+            <span class="text-white">FilmoGo</span>
+        </a>
+
+        <!-- සර්ච් බාර් එක Header එක මැදට -->
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search movies, tv shows..." autocomplete="off">
+            <div id="searchSuggestions" class="suggestions-box"></div>
+        </div>
+
+        <div class="nav-links">
+            <a href="#" class="nav-link mobile-search-btn" id="mobileSearchBtn"><i class="fas fa-search"></i></a>
+            <a href="index.html" class="nav-link"><i class="fas fa-home"></i> <span class="nav-text">Home</span></a>
+            <a href="browse.html" class="nav-link active"><i class="fas fa-compass"></i> <span class="nav-text">Browse</span></a>
+        </div>
+    </nav>
+
+    <!-- Browse Layout: Sidebar + Grid -->
+    <div class="browse-layout">
+        
+        <!-- Mobile Filter Button -->
+        <button class="mobile-filter-btn" onclick="document.getElementById('browseFilters').classList.add('active')">
+            <i class="fas fa-sliders-h"></i> Filters & Categories
+        </button>
+
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar" id="browseFilters">
+            <button class="close-filters-btn" onclick="document.getElementById('browseFilters').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="filter-group">
+                <h3>Quick Picks</h3>
+                <div class="filter-pills">
+                    <button class="cat-pill active" onclick="loadBrowseCategory('trending', this)">Trending Now</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('top_rated', this)">IMDb Top Rated</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('popular', this)">Most Popular</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Platforms</h3>
+                <div class="filter-pills">
+                    <button class="cat-pill" onclick="loadBrowseCategory('netflix', this)">Netflix</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('disney', this)">Disney+</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('prime', this)">Prime Video</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('apple', this)">Apple TV+</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('hbo', this)">HBO Max</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('hulu', this)">Hulu</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Content Type</h3>
+                <div class="filter-pills">
+                    <button class="cat-pill" onclick="loadBrowseCategory('movies', this)">Movies</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('tv', this)">TV Shows</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('anime', this)">Anime</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('kids', this)">Kids & Family</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('documentary', this)">Documentaries</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3>Main Genres</h3>
+                <div class="filter-pills" id="genreFilters">
+                    <button class="cat-pill" onclick="loadBrowseCategory('28', this)">Action</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('action_adv', this)">Action & Adventure</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('12', this)">Adventure</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('16', this)">Animation</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('biography', this)">Biography</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('35', this)">Comedy</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('costume', this)">Costume</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('80', this)">Crime</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('99', this)">Documentary</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('18', this)">Drama</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('10751', this)">Family</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('14', this)">Fantasy</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('film_noir', this)">Film-Noir</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('game_show', this)">Game-Show</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('36', this)">History</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('27', this)">Horror</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('kungfu', this)">Kungfu</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('10402', this)">Music</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('musical', this)">Musical</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('9648', this)">Mystery</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('mythological', this)">Mythological</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('news', this)">News</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('psychological', this)">Psychological</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('reality', this)">Reality</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('10749', this)">Romance</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('878', this)">Sci-Fi</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('scifi_fantasy', this)">Sci-Fi & Fantasy</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('short', this)">Short</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('sitcom', this)">Sitcom</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('sport', this)">Sport</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('talk_show', this)">Talk-Show</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('53', this)">Thriller</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('10770', this)">TV Movie</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('10752', this)">War</button>
+                    <button class="cat-pill" onclick="loadBrowseCategory('37', this)">Western</button>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-panel">
+            <div class="filtered-grid" id="browseGrid"></div>
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Loading more...
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
